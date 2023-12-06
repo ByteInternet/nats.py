@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: nats.py
+Upstream-Contact: NATS - https://github.com/nats-io/nats.py
+Source: https://github.com/nats-io/nats.py
+
+Files: *
+Copyright: (c) 2018-2023 NATS
+License: Apache-2.0

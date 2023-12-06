@@ -1,0 +1,896 @@
+nats.py (2.6.0) UNRELEASED; urgency=medium
+
+  [ Hypernode Tech Team ]
+  * 
+
+  [ Waldemar Quevedo ]
+  * first commit
+  * Add basic structure to the client
+  * Add connecting and closed states to client
+  * Add basic subscription method
+  * Add protocol parser and processing messages engine
+  * Add ping interval
+  * Add basic reconnect logic
+  * Modify way of concatenating bytes to be sent to server
+  * Add processing of messages
+  * Add helpers for sending timed requests
+  * Use create_task rather than calling asyncio.Task directly
+  * Modify way connect connect command is built
+  * Make message handlers be coroutines
+  * Add readme and match examples
+  * update todo
+  * Update parser implementation and add tests
+  * Add test utils
+  * Fix loop used for Futures
+  * Test cases updates
+  * Add subscription tests
+  * Add low level unsubscribe method
+  * Add canceling to futures
+  * Fix parser test
+  * Add replaying of subscriptions on reconnect, auth tests
+  * Update examples
+  * Add setup.py
+  * Add travis ci build
+  * Add travis-ci and test fixes
+  * Revise futures cancellation in client
+  * Try python 3.5.1
+  * Update readme mentioning Python 3.5.1 support
+  * Add dont_randomize to options
+  * Add benchmark scripts
+  * Basic subscribe example
+  * Add subscribe example to repo
+  * Close writer before dispatching closed callbacks
+  * Add example nats-pub, nats-sub example tools
+  * Handle eof from reader
+  * Example of using context manager for opening connection to NATS
+  * Example with context manager
+  * Bump version
+  * Update benchmark scripts
+  * Use async queue for coalescing writes to socket
+  * Fix benchmark scripts for Python 3.4
+  * Remove extra line breaks in benchmark scripts
+  * Fixes for pending futures
+  * Fixes to pending commands flusher
+  * Bump version to 0.2.0
+  * Update readme
+  * Only show state when calling repr in Parser
+  * Switch to using coroutines in Parser as well
+  * Add property for tracking pending data size
+  * Let subscribe process messages asynchronously
+  * Add sub perf and minor updates
+  * Regexp based parser
+  * Bump version to 0.3.0
+  * Update parser perf script to use coroutines
+  * Add test case for parsing errors
+  * Test in travis using latest gnatsd release
+  * subscribe is dispatched messages sequentially, add subscribe_async
+  * Check for iscoroutinefunction for Subscription once
+  * Add tests showing async/await
+  * Change to use is_async keyword for Susbcriptions
+  * Remove unecessary functools import
+  * Add sub perf example using async/await
+  * nats-sub and nats-pub utils minor fixes
+  * Fix more examples
+  * Add async/await syntax example, update readme
+  * Bump default version of NATS to test against
+  * Update setup.py
+  * Update readme
+  * Readme updates
+  * Update todo.md
+
+  [ Nikita Grishko ]
+  * Fix pep8 warnings
+  * Plugable message class
+
+  [ Waldemar Quevedo ]
+  * Bump version to v0.3.1
+
+  [ Alexander Verbitsky ]
+  * Lazy initialization of loop in client
+
+  [ Waldemar Quevedo ]
+  * Bump to v0.3.2
+  * Trigger flush only when connected and there is pending data
+  * Bump version to v0.3.3
+  * Try python 3.6
+  * Adds max_payload property to access max payload from server INFO
+  * Fix reconnect logic to allow infinite reconnect with backoff
+  * Reconnection logic fixes
+  * Remove using task_done on flusher task and just cancel on reconnect
+  * Reduce reconnect_time_wait in test of infinite reconnects
+  * Add test for custom flusher queue and reconnect
+  * Bump version to v0.4.0
+  * Add example of run_coroutine_threadsafe usage
+  * Update readme
+
+  [ Brian Shannan ]
+  * add tls
+
+  [ Waldemar Quevedo ]
+  * Add flushing pending data when closing connection
+  * Add basic TLS reconnect test
+  * Bump version to v0.5.0
+  * Add support for auth token
+  * Readme updates
+  * Apply pep8 style to tests
+  * More pep8 fixes to the client
+  * Bump version to v0.5.2
+  * Apply pep8 updates to utils.py
+  * Adds support for discovered servers in cluster
+  * Add parser test for processing info
+  * Allow longer subject lines, disallow small broken protocol lines
+  * Add test for malformed long protocol lines
+  * Fixes to tests for python3.4
+  * Update readme
+  * Check that keys exist in INFO string from server
+  * Update version of the server used in tests
+
+  [ Nikita Grishko ]
+  * fixup reconnect: raise `NatsError` on empty server info response
+
+  [ Álvaro Durán Tovar ]
+  * Raise error if response from server is empty
+  * Update error messages raised during connect init
+
+  [ Waldemar Quevedo ]
+  * Fix allow_reconnect to bail after first failed attempt
+  * Add fake TCP server in tests to check broken INFO cases
+  * Add more checks against malformed INFO line
+  * Bump version to v0.6.2
+  * Update badges in README
+
+  [ Alexander Oblovatniy ]
+  * Cancel reconnection task on close
+  * Prevent TLS from closing randomly (#49)
+
+  [ Waldemar Quevedo ]
+  * Bump version
+
+  [ Nikita Grishko ]
+  * perf improvements: declare `SystemRandom` on the module level
+
+  [ Waldemar Quevedo ]
+  * cncf: Add Apache 2 License
+  * cncf: Update License in readme
+  * cncf: Update License to Apache 2 throughout
+  * Add NUID implementation for inbox generation
+  * Use NUID for the inboxes from requests
+  * Bump version and setup.py
+  * Include tests for NUID
+  * Update latency perf script
+  * Change to use task per subscription
+  * Use slots for Msg type
+  * Add deprecate message to subscribe_async
+  * Add slow consumer error based on sub pending data
+  * Add new request/response style implementation
+  * Add benchmark script with async and new request/response
+  * Switch to use new style request in tests
+  * Switch to use new style request response in perf script
+  * Fixes for python 3.4 support
+  * Update readme usage to adopt new request/response
+  * Formatting fixes using yapf
+  * Change examples to explicitly connect to a server
+  * Update server version
+  * Update tests
+
+  [ ainsley ]
+  * Add Governance and Maintainers [ci skip]
+
+  [ jaksrini ]
+  * Correcting from "pong" to "ping" as it would be ping that would be sent to recieve a pong
+
+  [ Waldemar Quevedo ]
+  * Set default max reconnects to 60 as in Go client
+  * Remove servers from server pool after exhausting attempts
+  * Use a future to wait for reconnection to complete
+  * Update tests
+  * Update minor version
+  * Add test for removing servers during reconnection
+  * Relinquish control with yield before closing
+  * define the loop to use for asyncio.all_tasks
+  * Bump version of the client
+  * Use async/await syntax in tests
+  * Update ClientTest due to Python 3.7 errors
+  * Update ClientTLSTest for Python 3.7
+  * Update ConnectFailureTest for Python 3.7
+  * Update TLS reconnect tests for Python 3.7
+  * Update readme TLS examples
+  * Add Python 3.7 to Travis
+  * Add Python 3.7
+  * Add no echo support
+  * Update tests for no echo support
+  * Remove python 3.4 in tests
+  * Use async/await syntax in tests
+  * Add syntax sugar for connect
+  * Add user, pass, token and loop options
+  * Bump version of the client
+  * Update couple of examples with simpler connect
+  * Add support for drain mode
+  * Task canceled fixes for drain mode
+  * Add connect_timeout option
+  * Travis updates
+  * Fix no echo test
+  * Update TODO
+  * Update examples to use async/await syntax
+  * Update readme.md
+  * Add example showing usage with aiohttp
+  * Added windows check and names logger to aiohttp example
+  * If scheme is set to tls, use default context
+  * Updated readme TLS instructions
+  * Bump version
+
+  [ Colin Sullivan ]
+  * [ci-skip] Add Brian Shannan as a maintainer
+  * Add maintainer Charlie Strawn [ci skip]
+
+  [ Aratz M. Lasa ]
+  * Added async callbacks wrapped in functools.partial
+
+  [ Waldemar Quevedo ]
+  * Update tests to use latest NATS v2.0 RC
+  * Add test for functools.partial support
+  * Rename to nats.py
+  * Update readme.md
+  * Add support for auth with nkeys and JWTs
+  * Use pytest, pipenv, add nkeys dep
+  * Update example tools to use creds
+  * Update Travis
+  * Process connect init fixes, test updates
+  * Add TLS support for implicit ips
+
+  [ Charlie Strawn ]
+  * Add yapf to dev dependencies.
+  * Run make format on code.
+  * Should no longer need this script since we are using pytest.
+
+  [ Waldemar Quevedo ]
+  * Update readme
+  * Add option to use nkeys only to connect
+  * Handle permissions violation error and avoid closing connection
+  * Update server release and formatting fixes
+  * Update server version in tests
+  * Update readme.md
+
+  [ Alvinlai ]
+  * Decrease pending_size when dequeue a message in request.wait_for_msgs
+
+  [ Brian Shannan ]
+  * add callback for discovered servers
+  * Shorten drain test waits
+  * use async/await instead of asyncio.coroutine/yield from
+  * yapf 0.27.0 fixes
+
+  [ Waldemar Quevedo ]
+  * Bump version
+  * Fixes to tools
+  * Bump version
+  * Update NATS Server version and name in tests
+  * Update TLS certs
+  * Update python versions
+
+  [ Charlie Strawn ]
+  * make start method async so example works.
+
+  [ Aggelos Kolaitis ]
+  * Raise error when callback functions are not coroutines
+
+  [ Waldemar Quevedo ]
+  * Update coroutine_threadsafe.py
+  * Skip nkeys tests unless deps are installed
+  * Update examples with async syntax
+  * Delete basic-async-await.py
+
+  [ Matthias Hanel ]
+  * Use demo.nats.io as url, fix ssl and exception error, use same name for loop
+  * add aretefacts from unit test into gitignore
+  * Adding code of conduct
+
+  [ Waldemar Quevedo ]
+  * Add service req/resp example
+
+  [ Arun M ]
+  * Ability to access the connection identifier / client id that the server had assigned
+  * Fixed indentation issue
+  * Set client_id to None on close or disconnect
+
+  [ Chiao Cheng ]
+  * Drain non-callback subscriptions correctly
+
+  [ Waldemar Quevedo ]
+  * Add test for draining non cb
+  * Add test for client id property
+
+  [ Charlie Strawn ]
+  * Fix deprecation warnings. Remove unnecessary coverage runs.
+  * run yapf.
+
+  [ Bernard Jesop ]
+  * [pyupgrade run] change fstring
+  * fix yapf formatting errors
+
+  [ Chiao Cheng ]
+  * clean up subscriptions in the event of a timeout
+
+  [ jwas ]
+  * allow to specify tls_hostname
+
+  [ Ginger Collison ]
+  * Update MAINTAINERS.md
+
+  [ Brian Shannan ]
+  * use non-deprecated tls upgrade method
+  * actually run 3.6, 3.8 in ci
+  * wait for all messages to be processed while draining
+  * set outstanding pings to zero when a pong is received
+  * apply connect_timeout to socket creates and tls upgrades
+  * allow disabling pending_bytes_limit
+  * properly handle auto unsubscribes
+  * remove explicit loops
+
+  [ Waldemar Quevedo ]
+  * Version updates
+
+  [ Greg Taylor ]
+  * Add Python 3.8 to setuptools classifiers
+
+  [ Brian Shannan ]
+  * provide a default error callback
+  * call task_done() after requests
+
+  [ Waldemar Quevedo ]
+  * Add uvloop to CI
+  * Bump version to v0.11.2
+
+  [ Brian Shannan ]
+  * make api more consistent with other clients
+
+  [ Waldemar Quevedo ]
+  * Add more options to nats.connect
+  * Update examples to be closer to Go client tools
+  * Update benchmark scripts
+  * Update readme examples
+  * Updates for async for handling
+
+  [ Brian Shannan ]
+  * add type hints
+  * add Msg::respond()
+  * use fstrings
+
+  [ Charlie Strawn ]
+  * Remove base NatsTestCase as its purpose is filled by pytest.
+  * Use dynamic file path for config files in unit tests, remove main scripts in test files
+  * make format
+
+  [ Waldemar Quevedo ]
+  * Fix issue reconnecting against LBs
+  * Bump version
+  * Add test for condition of bad server behind LB
+
+  [ Ginger Collison ]
+  * Create dependencies.md
+
+  [ 浩 ]
+  * support set pending size to client connect options
+
+  [ dependabot[bot] ]
+  * Bump py from 1.8.0 to 1.10.0
+
+  [ Waldemar Quevedo ]
+  * yapf: format fixes
+  * Use wait_closed asyncio API to prevent op errors
+  * Test updates
+  * Add next_msg to subscription
+  * Add support for headers
+  * Fixes to wait_close usage
+  * Remove Python 3.6
+  * Update travis
+  * Bump client version to v2
+  * Add basic JetStream support
+  * Add PullSubscribe and fixes to Headers
+  * js: Add ephemeral push consumers and metadata parsing
+  * js: split into js.py
+  * js: fix format
+  * js: update setup py
+  * js: format fixes
+
+  [ pturanyi ]
+  * Update __main__.py
+
+  [ Waldemar Quevedo ]
+  * js: Rework JetStream support
+  * Add js.publish and API errors
+  * Add more methods to JSM
+  * jsm: Add stream/consumer delete
+  * js: Add nak/term/in_progress
+  * js: Support js.publish with headers
+  * js: Add auto create of consumers
+  * js: Handle API errors from fetch
+  * js: Make metadata a property
+  * Update setup.py
+  * jsm: Add JetStreamManager
+  * js: update readme, add example
+  * Format fixes
+  * Change ErrNoResponders to NoRespondersError
+  * Test fixes
+  * Rename to nats-py
+  * Update readme.md
+  * Lowercase protocol errors, like Go client
+  * Add nats.errors module with pep8 style
+  * Add nats.errors package
+  * Replace ErrSlowConsumer with SlowConsumerError
+  * Bump default pending limits
+  * Format fixes
+  * Update flush
+  * Update Travis
+  * Move nats.aio.nuid to nats.nuid
+  * Fix random issue with duplicated NUIDs
+  * Update certs
+  * js: Add support for deliver group
+  * js:Add support for durable subscribe
+  * js: Add support for ephemeral subscribe
+  * js: Add support for Ordered Consumers
+  * Update the errors from the client
+  * Add nats.aio.msg to avoid circular imports
+  * js: Add initial KV support
+  * readme updates
+  * Doc updates and version bump
+
+  [ chiselko6 ]
+  * Fixed NUID generator to produce the same value in subsequent calls
+
+  [ Waldemar Quevedo ]
+  * NUID handling fixes, bump version
+  * js: Fix filter subject for pull consumers
+  * Remove decoding data from msg repr
+  * Bump version
+  * js: move headers constants into own file
+  * js: Implement fetch N messages for pull subscribers
+  * js: Add MsgAlreadyAckdError when acking msg twice
+  * Release v2.0.0rc4
+  * js: fix fetch returning status messages
+
+  [ Milhan KIM ]
+  * Add subject, sid, and sub to SlowConsumerError for the ease of debugging
+  * Make util find nats-server binary configured in install script
+  * Accept config and parameters in add_stream
+  * Add missing `self` argument and `classmethod` wrapper
+  * Fix minor type hintings
+  * Add missing classmethod annotation and argument
+
+  [ Gram ]
+  * Improve type annotations (#252)
+
+  [ Waldemar Quevedo ]
+  * Fix formatting
+
+  [ gram ]
+  * fix type errors in JetStreamContext and JetStreamManager
+  * fix type errors in KeyValueManager
+  * add mypy config
+  * format the code with yapf
+
+  [ charbonnierg ]
+  * add reply attribute on SlowConsumerError and change SlowConsumerError.subject from bytes to str type
+
+  [ Gram ]
+  * Improve type annotations in nats/js/ (#255)
+  * Run flake8 and mypy on CI (#258)
+  * Improve JS API (#259)
+  * Run mypy on the whole library (#260)
+  * Improve JS API (#261)
+  * Sort imports (#262)
+
+  [ Waldemar Quevedo ]
+  * Bump server version
+  * Update client behavior for latest server
+  * Update client version to v2.0.0
+  * Disable mypy since breaking CI due to dependency
+  * Update pull consumer tests
+
+  [ avi ]
+  * allow waiting forever
+  * remove asyncgen import
+  * format
+  * timeout can be None now
+
+  [ Waldemar Quevedo ]
+  * Fix travis badge url
+
+  [ avi ]
+  * add nak delay support and test
+  * format
+  * make sure ns is an int
+
+  [ Waldemar Quevedo ]
+  * Update NATS Server for tests
+  * Add component example using new APIs
+
+  [ Gram ]
+  * JetStream: decouple pull_subscribe_bind from pull_subscribe (#266)
+  * Use pytest-style assertions in test_js.py (#275)
+
+  [ Guillaume Tassery ]
+  * Add a way to configure custom inbox prefix
+
+  [ Lucas Servén Marín ]
+  * typing: support PEP-561 (#277)
+  * nats: add typing to main connect function
+
+  [ Waldemar Quevedo ]
+  * Fix auto unsubscribe pending msgs processing
+  * Remove unused sid field from Msg
+
+  [ Lucas Servén Marín ]
+  * nats/aio: use nats://localhost:4222 as default
+
+  [ gram ]
+  * JetStream: extract subscribe_bind from subscribe
+  * WIP test subscribe_bind
+
+  [ Waldemar Quevedo ]
+  * Fix subscribe_bind test
+
+  [ gram ]
+  * require deliver_subject in JS subscribe_bind
+
+  [ Mason Sedlik ]
+  * Fix connected_url to return ParseResult
+
+  [ Waldemar Quevedo ]
+  * Add test to fix connected_url type
+  * Add cluster name to tests
+  * Fixes to internal flush mechanism plus new connect options
+  * Fix wrong exception on flush
+  * Lower default pending size to twice max payload
+  * Fix headers type
+  * Fix benchmark scripts
+
+  [ Mariano Abdala ]
+  * fix('#292: ssl_context referenced before assignment')
+
+  [ tdelora ]
+  * Update __main__.py
+
+  [ olgeni ]
+  * Make 'cluster' optional in 'Placement' class.
+
+  [ Waldemar Quevedo ]
+  * Update fetch tests
+  * Update sub.fetch implementation for pull subscribe
+  * Make nats.errors.TimeoutError also be a nats.errors.Error
+  * Skip checking num_waiting on tests
+  * Validate subject and queue name
+  * Update travis and nats-server
+  * Update travis and nats-server
+  * Skip fetch tests
+  * Fix flaky test
+  * Fix pull subscribe test
+  * Fix canceling next_msg task
+  * Implement more JSM methods
+  * Add jsm.stream update
+  * Format fixes
+  * Add handling of KeyError just in case (issue 314)
+  * Fixes to header parser
+  * Format fixes
+
+  [ Tom Pillot ]
+  * Fix uncaught asyncio.TimeoutError
+
+  [ Dominik Deren ]
+  * Fix incorrect timeout propagation
+  * Update nats/js/client.py
+
+  [ Waldemar Quevedo ]
+  * Fix header line to be compatible again with other clients
+  * More header fixes
+
+  [ Deepak ]
+  * Add num_replicas field for consumer
+  * Add consumer name
+  * Fix subject name when publishing
+
+  [ Waldemar Quevedo ]
+  * Format fixes
+  * Bump server version
+  * Bump client version
+  * Fixes to pending_bytes_limit handling
+  * Move test
+  * Fix async iterator not decreasing pending data size
+  * Bump client version
+  * add dependencies.md
+  * Add couple of extra unique token characters to requests
+
+  [ Hervé Beraud ]
+  * fixes typos
+  * Modernizes the way we package and distribute nats.py by using PEP621 (#341)
+  * Makes connections examples more configurable
+
+  [ charbonnierg ]
+  * fix: support connecting already closed client
+
+  [ Waldemar Quevedo ]
+  * apply formatting
+
+  [ blablatdinov ]
+  * Fix Client.publish docstring typo (#344)
+
+  [ Hervé Beraud ]
+  * [Fix #325] Removes the server address from reconnection logs in examples.
+
+  [ Waldemar Quevedo ]
+  * kv: initial support to get keys by revision
+  * kv: add get revision API, update default KV fields
+  * js: move get last msg, add subject option to get_msg
+  * nc: add server_version helper to client
+  * js: update stream defaults from create_key_value
+  * kv: add get revision and allow direct to get msg
+  * nc: bump version, format fixes
+  * js: make allow direct be explicit
+
+  [ Brunno Vanelli ]
+  * Also cleanup subscriptions with message iterator.
+
+  [ Waldemar Quevedo ]
+  * nc: add test for iterator closing
+  * travis updates
+
+  [ Byron Ruth ]
+  * Support v2 JS.ACK format
+  * Fix lint
+  * Represent "no domain" as empty string
+  * Fix logic
+  * Fix wrong var name
+  * Fix bad reference
+
+  [ Waldemar Quevedo ]
+  * Added test, tweaked token count
+  * Add flush to no echo test
+
+  [ Brunno Vanelli ]
+  * feature: First draft of websocket client implementation for nats.
+  * Get nats to work with websocket connection, switching to aiohttp
+  * Fix connection with ssl_context when connected to secure websocket.
+  * Add PING command to pending data size otherwise it will not be flushed
+  * Add tests as a copy of current implementation for test client
+  * Reformat all files using yapf.
+  * Fix tests and add dependency to Pipfile
+  * Rename Websocket to WebSocket, fix failing test and write some documentation.
+  * Include toml dependency to prevent pipeline from failing on python 3.10.
+  * Disallow mixing transports when using multiple servers.
+  * Remove empty test
+
+  [ Waldemar Quevedo ]
+  * ws: add TLS tests
+  * js: Add kv.watch, update KV implementation
+  * kv: implement keys, history and async iter
+  * kv: add history too large error
+  * kv: add purge deletes
+  * js: format
+  * Update NATS version
+  * kv: fix watch nil markers
+  * format fixes
+  * js: add mirror direct
+  * tests: add conf folder
+  * js: update account limits
+  * js: support consumer with name
+  * js: add consumer config inactive threshold
+  * fix typos
+
+  [ Carlo Suriano ]
+  * Add ack in jetstream pull subscriber sample
+
+  [ Brunno Vanelli ]
+  * Fix issue where protocol was changed for ws and wss if no port was provided.
+
+  [ Dominik Deren ]
+  * Add Object Store implementation
+
+  [ Jon Hammer ]
+  * Updated signatures for 'servers' and 'discovered_servers' properties
+
+  [ Brunno Vanelli ]
+  * Return proper 'unexpected EOF' when connection is finished abruptly
+
+  [ charbonnierg ]
+  * wip: add comments regarding cancel exceptions
+  * added unit test
+  * update _drain method to also raise back cancelled errors
+
+  [ gram ]
+  * sort imports
+  * Make all type annotations lazy
+
+  [ Waldemar Quevedo ]
+  * Bump server version and pipfile.lock (#387)
+
+  [ gram ]
+  * fix all new mypy errors
+  * Fix mypy issues
+  * Drop Python 3.6 compat
+
+  [ Waldemar Quevedo ]
+  * Remove assert for mypy that was breaking uvloop
+
+  [ gram ]
+  * Use the new type annotations syntax
+  * Move configs from setup.cfg into pyproject.toml
+
+  [ Dominik Deren ]
+  * Removing not wanted change.
+  * Updating lock file.
+  * Fixing object store item name parser.
+  * Fixing code formatting.
+  * Removing test that was added during incorrect merge.
+  * Fixing CI issue.
+
+  [ gram ]
+  * Forbid None for Msg.Metadata fields
+  * Convert `republish` value into dataclass
+  * trigger CI
+
+  [ alparslanavci ]
+  * Added custom inbox prefix support for js pull subscribe
+
+  [ willcodeco ]
+  * Fixes incorrect formatting in `.travis.yml`.
+  * skip `test_reconnect_buf_size()` since it suffers from same flaky-ness as  `test_reconnect_buf_disabled`
+
+  [ charbonnierg ]
+  * Add sid property to nats.aio.msg.Msg class
+
+  [ kkqy ]
+  * change the type of client_id into int.
+
+  [ ppd0705 ]
+  * js: fix msg losing
+
+  [ Waldemar Quevedo ]
+  * Bump python versions
+  * Bump version of server in travis
+  * Update test from jsm management
+  * changed: next_msg cannot be used with callbacks
+  * Bump client version
+
+  [ allanbank ]
+  * Update the WebSocketTransport to detect upgrade to TLS (#443)
+
+  [ Waldemar Quevedo ]
+  * format fixes
+  * Update defaults for object store stream
+  * obs: Add put file implementation
+  * obj: Add purging streams on errors
+  * obj: add object watch and update_meta
+  * obj: add object store links
+  * obj: Add list
+  * obj: format fixes
+  * chore: update nats-server
+  * chore: ci fixes
+  * obj: decrease size of big file test
+  * Send credentials even if no_auth_required is set
+  * Apply suggestions from orsinium
+  * chore: format fixes
+  * fixes for no auth test
+
+  [ Jonathan Martin ]
+  * support parsing headers with fast-mail-parser
+
+  [ Waldemar Quevedo ]
+  * Update nats/aio/client.py
+  * chore: format fixes
+  * chore: update deps
+  * obj: use executor for reading files to not block
+  * obj: add writeinto option for get to write to buffer
+  * chore: format fixes
+  * header: test fixes
+  * chore: format fixes
+  * dep updates
+  * obj: remove name sanitization which is incompatible
+  * format fixes
+  * obj: aiofiles optional dep
+  * chore: add fast-mail-parser
+  * chore: deps fixes
+
+  [ Pastukhov Nikita ]
+  * Fix python3.7, 3.8 compability (#454)
+
+  [ Waldemar Quevedo ]
+  * Release/v2.3.1 (#455)
+
+  [ Lancetnik ]
+  * fix #456: use uuid4 to gen unique task names
+
+  [ Anton Anisimov ]
+  * -> add | offset for js.consumers_info
+  * -> add | default offset value
+
+  [ Florian Schäfer ]
+  * Coherently use f-strings
+
+  [ Waldemar Quevedo ]
+  * Fix websocket connection when not using TLS
+
+  [ Florian Schäfer ]
+  * Add missing f prefix
+
+  [ Waldemar Quevedo ]
+  * chore: format fixes
+  * Add multi nats method testing
+
+  [ Florian Schäfer ]
+  * Fix docstring typo
+  * Add missing pull subscriber declaration to docstring
+
+  [ Sebastian King ]
+  * Fix CLOSED connection detection
+
+  [ Florian Schäfer ]
+  * Add code example to Subscription.messages docstring
+
+  [ Waldemar Quevedo ]
+  * Update install_nats.sh
+
+  [ Anton Anisimov ]
+  * -> rm | delete 'nats: connection is closed' msg for fut.cancel to ensure backward compatibility
+
+  [ Byron Ruth ]
+  * Add issue forms
+
+  [ Anthony Jacques ]
+  * Fix auth to respect provided server address username and password if no_auth_user is set (#488)
+
+  [ Byron Ruth ]
+  * Fix discussion link for issue form (#486)
+
+  [ Yarik ]
+  * Fix `connect()` (#484)
+
+  [ databasedav ]
+  * allow passing nkey seed as string (#468)
+
+  [ Waldemar Quevedo ]
+  * ws: fix calling close while disconnected
+  * Add test for closing while disconnecting
+  * Add previous Python versions
+  * Bump version
+  * Travis updates
+  * Skip Python 3.7 that cannot use AsyncMocks
+  * In Python 3.12 cannot call future.set_result multiple times
+  * Fix asyncio.all_tasks usage in Python 3.12
+  * Update kv republish test for v2.10
+  * Review comments
+  * Package metadata fixes
+
+  [ Oliver Mannion ]
+  * fix: improve types on kv/object_store updates (#497)
+
+  [ Waldemar Quevedo ]
+  * Remove formatting requirement on CI
+
+  [ Oliver Mannion ]
+  * asyncio.Queue[KeyValue.Entry | None]
+
+  [ Waldemar Quevedo ]
+  * Update dependencies.md
+
+  [ Byron Ruth ]
+  * Simplify and relax issue forms further
+
+  [ Waldemar Quevedo ]
+  * Add test for tls handshake option
+  * Add tls_handshake_option for connect
+  * Bump version
+  * Formatting
+  * Fixes for ordered consumer
+  * Bump max control line to 4K as in server
+  * Format fixes
+  * Add test for missing consumer recreate
+  * Add support for ephemeral pull subscribe
+  * Update test
+  * Update tests to use 4K max control line default
+  * Bump version to v2.6.0
+
+  [ yenonn ]
+  * clean unused libs
+  * clean unused libs
+
+ -- Hypernode Tech Team <tech@hypernode.com>  Wed, 06 Dec 2023 15:07:45 +0100

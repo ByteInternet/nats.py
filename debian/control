@@ -1,0 +1,22 @@
+Source: nats.py
+Section: python
+Priority: optional
+Maintainer: Hypernode <tech.team@hypernode.com>
+Uploaders: Hypernode <tech.team@hypernode.com>
+Build-Depends:
+ debhelper-compat (= 12),
+ dh-python,
+ python3-all,
+ python3-pytest <!nocheck>,
+ python3-setuptools,
+Standards-Version: 4.6.2
+Homepage: https://nats-io.github.io/nats.py/
+Vcs-Git: https://github.com/ByteInternet/nats.py.git
+Vcs-Browser: https://github.com/ByteInternet/nats.py
+Rules-Requires-Root: no
+
+Package: python3-nats
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}
+Description: Python3 client for NATS
+ An asyncio Python client for the NATS messaging system.
