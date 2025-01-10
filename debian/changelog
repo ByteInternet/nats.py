@@ -1,4 +1,4 @@
-nats.py (2.6.0) UNRELEASED; urgency=medium
+nats.py (2.9.0) UNRELEASED; urgency=medium
 
   [ Hypernode Tech Team ]
   * 
@@ -893,4 +893,128 @@ nats.py (2.6.0) UNRELEASED; urgency=medium
   * clean unused libs
   * clean unused libs
 
- -- Hypernode Tech Team <tech@hypernode.com>  Wed, 06 Dec 2023 15:07:45 +0100
+  [ Carlo Suriano ]
+  * Add consumer backoff support
+
+  [ Ginger Collison ]
+  * Create CONTRIBUTING.md [skip ci]
+  * Update CONTRIBUTING.md [skip ci]
+
+  [ Brian Smith ]
+  * Added support to export subjects when fetching js.stream_info()
+
+  [ Waldemar Quevedo ]
+  * Add test for js.stream_info subjects_filter support
+  * Use server explicit version in Travis
+  * Add filter_subjects to ConsumerConfig
+  * Update test_kv_simple to adapt to change in v2.10.10
+  * Change default inactive_threshold for kv watch to 5min
+  * Change first argument from pull_subscribe_bind to consumer
+  * Remove testing of older dev branch
+  * Bump version to v2.7.0
+
+  [ Guillaume Charbonnier ]
+  * added support for subject transform
+
+  [ Waldemar Quevedo ]
+  * Add test and support of transforms in sources
+
+  [ Guillaume Charbonnier ]
+  * Add compression field in StreamConfig (#537)
+
+  [ Waldemar Quevedo ]
+  * Add test for stream compression
+
+  [ Guillaume Charbonnier ]
+  * added metadata field to both StreamConfig and ConsumerConfig
+  * added metadata field to both StreamConfig and ConsumerConfig (#539)
+
+  [ Waldemar Quevedo ]
+  * Fix setting none as StreamCompression
+  * Bump version to v2.7.2
+  * Add consumer backoff support
+  * js: add fetch heartbeat option
+  * Add optional idle_heartbeat to fetch request
+
+  [ Hugo O. Rivera (ROGUH) ]
+  * Allow passing file contents as user_credentials, not just file paths
+
+  [ Waldemar Quevedo ]
+  * Add option to pass RawCredentials string as user_credentials
+
+  [ Casper Beyer ]
+  * Fix flaky test
+
+  [ Waldemar Quevedo ]
+  * Update dependencies.md
+
+  [ Casper Beyer ]
+  * Add deferred publishing to JetStream
+  * Handle publish ack futures internally in JetStreamContext
+  * Make pending_acks_limit 4000 instead of 4096 by default
+  * Remove debug prints
+  * Add `JetStreamContext.publish_async_completed`
+  * Remove unused timeout parameter
+  * Add `publish_async_pending`
+  * Fix potential race condition in `nats.aio.Client.request`
+  * Use an `asyncio.Event` to signal pending publish completion
+  * Add stall waiting for publish async
+  * Align more with Go naming
+  * Update nats/js/errors.py
+
+  [ Waldemar Quevedo ]
+  * Bump version to v2.8.0
+  * Update server version
+  * Test using latest nats release
+  * Update pythons
+  * Update setup.py
+  * Update README.md
+
+  [ Charles Duffy ]
+  * JetStreamManager: During a direct GET, do not conflate seq == 0 and seq is None
+
+  [ Casper Beyer ]
+  * Implement services (ADR-32) (#566)
+
+  [ pySilver ]
+  * Fixes memory leak in `PushSubscription::unsubscribe`
+
+  [ kousha ghodsizad ]
+  * Add test for `streams_info` method with offset and implement pagination (#594)
+
+  [ Waldemar Quevedo ]
+  * Bump version to v2.9.0
+
+  [ somratdutta ]
+  * feat(kv): implement KeysWithFilters method for key filtering in KV bucket
+  * work on comments - replace print with logger - added params to existing method keys() - add test file - update example - raise error
+  * work on comments - replace print with logger - added params to existing method keys() - add test file - update example - raise error
+  * work on comments - remove unnecessary logging line
+
+  [ rijenkii ]
+  * Fix typing of `JetStreamContext.publish`
+
+  [ Casper Beyer ]
+  * Add `discard_new_per_subject` to `StreamConfig`
+  * Make tests inherit from jetstream test case
+
+  [ Mourits de Beer ]
+  * Validate stream name in `add_stream` method (#607)
+
+  [ Casper Beyer ]
+  * Add test workflow
+  * Enforce formatting
+
+  [ Diorcet Yann ]
+  * Support REQUEST_TIMEOUT status code for a batch fetch with no_wait=True (#618)
+
+  [ Mikołaj Nowak ]
+  * Fix deliver_subject in implicit subscription creation (#615)
+
+  [ Mourits de Beer ]
+  * Enforce import sorting
+
+  [ John Weldon ]
+  * Allow passing pathlib.Path derived types to user_credentials (#623)
+
+ -- Hypernode Tech Team <tech@hypernode.com>  Fri, 10 Jan 2025 10:00:43 +0100
