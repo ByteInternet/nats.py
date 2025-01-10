@@ -20,22 +20,16 @@ import ipaddress
 import json
 import logging
 import ssl
-import time
 import string
+import time
+from collections import UserString
 from dataclasses import dataclass
 from email.parser import BytesParser
+from io import BytesIO
+from pathlib import Path
 from random import shuffle
 from secrets import token_hex
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Tuple,
-    Union,
-    List,
-    Optional,
-    Dict,
-)
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, Union
 from urllib.parse import ParseResult, urlparse
 
 try:
@@ -50,7 +44,6 @@ from nats.protocol import command as prot_command
 from nats.protocol.parser import (
     AUTHORIZATION_VIOLATION,
     PERMISSIONS_ERR,
-    PING,
     PONG,
     STALE_CONNECTION,
     Parser,
@@ -65,26 +58,26 @@ from .subscription import (
 )
 from .transport import TcpTransport, Transport, WebSocketTransport
 
-__version__ = '2.6.0'
-__lang__ = 'python3'
+__version__ = "2.9.0"
+__lang__ = "python3"
 _logger = logging.getLogger(__name__)
 PROTOCOL = 1
 
-INFO_OP = b'INFO'
-CONNECT_OP = b'CONNECT'
-PING_OP = b'PING'
-PONG_OP = b'PONG'
-OK_OP = b'+OK'
-ERR_OP = b'-ERR'
-_CRLF_ = b'\r\n'
+INFO_OP = b"INFO"
+CONNECT_OP = b"CONNECT"
+PING_OP = b"PING"
+PONG_OP = b"PONG"
+OK_OP = b"+OK"
+ERR_OP = b"-ERR"
+_CRLF_ = b"\r\n"
 _CRLF_LEN_ = len(_CRLF_)
-_SPC_ = b' '
+_SPC_ = b" "
 _SPC_BYTE_ = 32
 EMPTY = ""
 
 PING_PROTO = PING_OP + _CRLF_
 PONG_PROTO = PONG_OP + _CRLF_
-DEFAULT_INBOX_PREFIX = b'_INBOX'
+DEFAULT_INBOX_PREFIX = b"_INBOX"
 
 DEFAULT_PENDING_SIZE = 2 * 1024 * 1024
 DEFAULT_BUFFER_SIZE = 32768
@@ -99,7 +92,7 @@ DEFAULT_CONNECT_TIMEOUT = 2  # in seconds
 DEFAULT_DRAIN_TIMEOUT = 30  # in seconds
 MAX_CONTROL_LINE_SIZE = 1024
 
-NATS_HDR_LINE = bytearray(b'NATS/1.0')
+NATS_HDR_LINE = bytearray(b"NATS/1.0")
 NATS_HDR_LINE_SIZE = len(NATS_HDR_LINE)
 NO_RESPONDERS_STATUS = "503"
 CTRL_STATUS = "100"
@@ -108,8 +101,14 @@ STATUS_MSG_LEN = 3  # e.g. 20x, 40x, 50x
 Callback = Callable[[], Awaitable[None]]
 ErrorCallback = Callable[[Exception], Awaitable[None]]
 JWTCallback = Callable[[], Union[bytearray, bytes]]
-Credentials = Union[str, Tuple[str, str]]
 SignatureCallback = Callable[[str], bytes]
+
+
+class RawCredentials(UserString):
+    pass
+
+
+Credentials = Union[str, Tuple[str, str], RawCredentials, Path]
 
 
 @dataclass
@@ -117,6 +116,7 @@ class Srv:
     """
     Srv is a helper data structure to hold state of a server.
     """
+
     uri: ParseResult
     reconnects: int = 0
     last_attempt: Optional[float] = None
@@ -137,10 +137,10 @@ class ServerVersion:
 
     # TODO(@orsinium): use cached_property
     def parse_version(self) -> None:
-        v = (self._server_version).split('-')
+        v = (self._server_version).split("-")
         if len(v) > 1:
             self._dev_version = v[1]
-        tokens = v[0].split('.')
+        tokens = v[0].split(".")
         n = len(tokens)
         if n > 1:
             self._major_version = int(tokens[0])
@@ -171,7 +171,7 @@ class ServerVersion:
     def dev(self) -> str:
         if not self._dev_version:
             self.parse_version()
-        return self._dev_version or ''
+        return self._dev_version or ""
 
     def __repr__(self) -> str:
         return f"<nats server v{self._server_version}>"
@@ -182,7 +182,7 @@ async def _default_error_callback(ex: Exception) -> None:
     Provides a default way to handle async errors if the user
     does not provide one.
     """
-    _logger.error('nats: encountered error', exc_info=ex)
+    _logger.error("nats: encountered error", exc_info=ex)
 
 
 class Client:
@@ -276,12 +276,12 @@ class Client:
 
         self.options: Dict[str, Any] = {}
         self.stats = {
-            'in_msgs': 0,
-            'out_msgs': 0,
-            'in_bytes': 0,
-            'out_bytes': 0,
-            'reconnects': 0,
-            'errors_received': 0,
+            "in_msgs": 0,
+            "out_msgs": 0,
+            "in_bytes": 0,
+            "out_bytes": 0,
+            "reconnects": 0,
+            "errors_received": 0,
         }
 
     async def connect(
@@ -409,8 +409,13 @@ class Client:
 
         """
 
-        for cb in [error_cb, disconnected_cb, closed_cb, reconnected_cb,
-                   discovered_server_cb]:
+        for cb in [
+                error_cb,
+                disconnected_cb,
+                closed_cb,
+                reconnected_cb,
+                discovered_server_cb,
+        ]:
             if cb and not asyncio.iscoroutinefunction(cb):
                 raise errors.InvalidCallbackTypeError
 
@@ -450,12 +455,12 @@ class Client:
         self.options["token"] = token
         self.options["connect_timeout"] = connect_timeout
         self.options["drain_timeout"] = drain_timeout
-        self.options['tls_handshake_first'] = tls_handshake_first
+        self.options["tls_handshake_first"] = tls_handshake_first
 
         if tls:
-            self.options['tls'] = tls
+            self.options["tls"] = tls
         if tls_hostname:
-            self.options['tls_hostname'] = tls_hostname
+            self.options["tls_hostname"] = tls_hostname
 
         # Check if the username or password was set in the server URI
         server_auth_configured = False
@@ -467,7 +472,8 @@ class Client:
         if user or password or token or server_auth_configured:
             self._auth_configured = True
 
-        if self._user_credentials is not None or self._nkeys_seed is not None or self._nkeys_seed_str is not None:
+        if (self._user_credentials is not None or self._nkeys_seed is not None
+                or self._nkeys_seed_str is not None):
             self._auth_configured = True
             self._setup_nkeys_connect()
 
@@ -487,7 +493,9 @@ class Client:
             try:
                 await self._select_next_server()
                 await self._process_connect_init()
-                assert self._current_server, "the current server must be set by _select_next_server"
+                assert (
+                    self._current_server
+                ), "the current server must be set by _select_next_server"
                 self._current_server.reconnects = 0
                 break
             except errors.NoServersError as e:
@@ -521,13 +529,14 @@ class Client:
 
         import nkeys
 
-        creds = self._user_credentials
+        creds: Credentials = self._user_credentials
+
         if isinstance(creds, tuple):
             assert len(creds) == 2
 
             def user_cb() -> bytearray:
                 contents = None
-                with open(creds[0], 'rb') as f:
+                with open(creds[0], "rb") as f:
                     contents = bytearray(os.fstat(f.fileno()).st_size)
                     f.readinto(contents)  # type: ignore[attr-defined]
                 return contents
@@ -536,7 +545,7 @@ class Client:
 
             def sig_cb(nonce: str) -> bytes:
                 seed = None
-                with open(creds[1], 'rb') as f:
+                with open(creds[1], "rb") as f:
                     seed = bytearray(os.fstat(f.fileno()).st_size)
                     f.readinto(seed)  # type: ignore[attr-defined]
                 kp = nkeys.from_seed(seed)
@@ -550,44 +559,16 @@ class Client:
                 return sig
 
             self._signature_cb = sig_cb
-        else:
+        elif (isinstance(creds, str) or isinstance(creds, UserString)
+              or isinstance(creds, Path)):
             # Define the functions to be able to sign things using nkeys.
             def user_cb() -> bytearray:
-                assert isinstance(creds, str)
-                user_jwt = None
-                with open(creds, 'rb') as f:
-                    while True:
-                        line = bytearray(f.readline())
-                        if b'BEGIN NATS USER JWT' in line:
-                            user_jwt = bytearray(f.readline())
-                            break
-                # Remove trailing line break but reusing same memory view.
-                return user_jwt[:len(user_jwt) - 1]
+                return self._read_creds_user_jwt(creds)
 
             self._user_jwt_cb = user_cb
 
             def sig_cb(nonce: str) -> bytes:
-                assert isinstance(creds, str)
-                user_seed = None
-                with open(creds, 'rb', buffering=0) as f:
-                    for line in f:
-                        # Detect line where the NKEY would start and end,
-                        # then seek and read into a fixed bytearray that
-                        # can be wiped.
-                        if b'BEGIN USER NKEY SEED' in line:
-                            nkey_start_pos = f.tell()
-                            try:
-                                next(f)
-                            except StopIteration:
-                                raise ErrInvalidUserCredentials
-                            nkey_end_pos = f.tell()
-                            nkey_size = nkey_end_pos - nkey_start_pos - 1
-                            f.seek(nkey_start_pos)
-
-                            # Only gather enough bytes for the user seed
-                            # into the pre allocated bytearray.
-                            user_seed = bytearray(nkey_size)
-                            f.readinto(user_seed)  # type: ignore[attr-defined]
+                user_seed = self._read_creds_user_nkey(creds)
                 kp = nkeys.from_seed(user_seed)
                 raw_signed = kp.sign(nonce.encode())
                 sig = base64.b64encode(raw_signed)
@@ -600,9 +581,59 @@ class Client:
 
             self._signature_cb = sig_cb
 
+    def _read_creds_user_nkey(
+        self, creds: str | UserString | Path
+    ) -> bytearray:
+
+        def get_user_seed(f):
+            for line in f:
+                # Detect line where the NKEY would start and end,
+                # then seek and read into a fixed bytearray that
+                # can be wiped.
+                if b"BEGIN USER NKEY SEED" in line:
+                    nkey_start_pos = f.tell()
+                    try:
+                        next(f)
+                    except StopIteration:
+                        raise ErrInvalidUserCredentials
+                    nkey_end_pos = f.tell()
+                    nkey_size = nkey_end_pos - nkey_start_pos - 1
+                    f.seek(nkey_start_pos)
+
+                    # Only gather enough bytes for the user seed
+                    # into the pre allocated bytearray.
+                    user_seed = bytearray(nkey_size)
+                    f.readinto(user_seed)  # type: ignore[attr-defined]
+                    return user_seed
+
+        if isinstance(creds, UserString):
+            return get_user_seed(BytesIO(creds.data.encode()))
+
+        with open(creds, "rb", buffering=0) as f:
+            return get_user_seed(f)
+
+    def _read_creds_user_jwt(self, creds: str | RawCredentials | Path):
+
+        def get_user_jwt(f):
+            user_jwt = None
+            while True:
+                line = bytearray(f.readline())
+                if b"BEGIN NATS USER JWT" in line:
+                    user_jwt = bytearray(f.readline())
+                    break
+            # Remove trailing line break but reusing same memory view.
+            return user_jwt[:len(user_jwt) - 1]
+
+        if isinstance(creds, UserString):
+            return get_user_jwt(BytesIO(creds.data.encode()))
+
+        with open(creds, "rb") as f:
+            return get_user_jwt(f)
+
     def _setup_nkeys_seed_connect(self) -> None:
-        assert self._nkeys_seed or self._nkeys_seed_str, "Client.connect must be called first"
-        import os
+        assert (
+            self._nkeys_seed or self._nkeys_seed_str
+        ), "Client.connect must be called first"
 
         import nkeys
 
@@ -613,7 +644,7 @@ class Client:
                 seed = bytearray(self._nkeys_seed_str.encode())
             else:
                 creds = self._nkeys_seed
-                with open(creds, 'rb') as f:
+                with open(creds, "rb") as f:
                     seed = bytearray(os.fstat(f.fileno()).st_size)
                     f.readinto(seed)  # type: ignore[attr-defined]
             key_pair = nkeys.from_seed(seed)
@@ -658,8 +689,8 @@ class Client:
         ):
             self._reading_task.cancel()
 
-        if self._ping_interval_task is not None and not self._ping_interval_task.cancelled(
-        ):
+        if (self._ping_interval_task is not None
+                and not self._ping_interval_task.cancelled()):
             self._ping_interval_task.cancel()
 
         if self._flusher_task is not None and not self._flusher_task.cancelled(
@@ -672,8 +703,8 @@ class Client:
 
             # Wait for the reconnection task to be done which should be soon.
             try:
-                if self._reconnection_task_future is not None and not self._reconnection_task_future.cancelled(
-                ):
+                if (self._reconnection_task_future is not None
+                        and not self._reconnection_task_future.cancelled()):
                     await asyncio.wait_for(
                         self._reconnection_task_future,
                         self.options["reconnect_time_wait"],
@@ -773,9 +804,9 @@ class Client:
     async def publish(
         self,
         subject: str,
-        payload: bytes = b'',
-        reply: str = '',
-        headers: Optional[Dict[str, str]] = None
+        payload: bytes = b"",
+        reply: str = "",
+        headers: Optional[Dict[str, str]] = None,
     ) -> None:
         """
         Publishes a NATS message.
@@ -829,7 +860,9 @@ class Client:
 
         payload_size = len(payload)
         if not self.is_connected:
-            if self._max_pending_size <= 0 or payload_size + self._pending_data_size > self._max_pending_size:
+            if (self._max_pending_size <= 0
+                    or payload_size + self._pending_data_size
+                    > self._max_pending_size):
                 # Cannot publish during a reconnection when the buffering is disabled,
                 # or if pending buffer is already full.
                 raise errors.OutboundBufferLimitError
@@ -868,15 +901,15 @@ class Client:
                     # Skip empty keys
                     continue
                 hdr.extend(key.encode())
-                hdr.extend(b': ')
+                hdr.extend(b": ")
                 value = v.strip()
                 hdr.extend(value.encode())
                 hdr.extend(_CRLF_)
             hdr.extend(_CRLF_)
             pub_cmd = prot_command.hpub_cmd(subject, reply, hdr, payload)
 
-        self.stats['out_msgs'] += 1
-        self.stats['out_bytes'] += payload_size
+        self.stats["out_msgs"] += 1
+        self.stats["out_bytes"] += payload_size
         await self._send_command(pub_cmd)
         if self._flush_queue is not None and self._flush_queue.empty():
             await self._flush_pending()
@@ -899,10 +932,10 @@ class Client:
         If a callback isn't provided, messages can be retrieved via an
         asynchronous iterator on the returned subscription object.
         """
-        if not subject or (' ' in subject):
+        if not subject or (" " in subject):
             raise errors.BadSubjectError
 
-        if queue and (' ' in queue):
+        if queue and (" " in queue):
             raise errors.BadSubjectError
 
         if self.is_closed:
@@ -947,31 +980,29 @@ class Client:
         self._resp_map = {}
 
         self._resp_sub_prefix = self._inbox_prefix[:]
-        self._resp_sub_prefix.extend(b'.')
+        self._resp_sub_prefix.extend(b".")
         self._resp_sub_prefix.extend(self._nuid.next())
-        self._resp_sub_prefix.extend(b'.')
+        self._resp_sub_prefix.extend(b".")
         resp_mux_subject = self._resp_sub_prefix[:]
-        resp_mux_subject.extend(b'*')
+        resp_mux_subject.extend(b"*")
         await self.subscribe(
             resp_mux_subject.decode(), cb=self._request_sub_callback
         )
 
     async def _request_sub_callback(self, msg: Msg) -> None:
         token = msg.subject[len(self._inbox_prefix) + 22 + 2:]
-        try:
-            fut = self._resp_map.get(token)
-            if not fut:
-                return
-            fut.set_result(msg)
-            self._resp_map.pop(token, None)
-        except (asyncio.CancelledError, asyncio.InvalidStateError):
-            # Request may have timed out already so remove the entry
-            self._resp_map.pop(token, None)
+        future = self._resp_map.get(token)
+
+        if not future:
+            return
+
+        if not future.done():
+            future.set_result(msg)
 
     async def request(
         self,
         subject: str,
-        payload: bytes = b'',
+        payload: bytes = b"",
         timeout: float = 0.5,
         old_style: bool = False,
         headers: Optional[Dict[str, Any]] = None,
@@ -991,8 +1022,8 @@ class Client:
             msg = await self._request_new_style(
                 subject, payload, timeout=timeout, headers=headers
             )
-        if msg.headers and msg.headers.get(nats.js.api.Header.STATUS
-                                           ) == NO_RESPONDERS_STATUS:
+        if (msg.headers and msg.headers.get(nats.js.api.Header.STATUS)
+                == NO_RESPONDERS_STATUS):
             raise errors.NoRespondersError
         return msg
 
@@ -1011,32 +1042,27 @@ class Client:
         assert self._resp_sub_prefix
 
         # Use a new NUID + couple of unique token bytes to identify the request,
-        # then use the future to get the response.
         token = self._nuid.next()
         token.extend(token_hex(2).encode())
         inbox = self._resp_sub_prefix[:]
         inbox.extend(token)
+
+        # Then use the future to get the response.
         future: asyncio.Future = asyncio.Future()
+        future.add_done_callback(
+            lambda f: self._resp_map.pop(token.decode(), None)
+        )
         self._resp_map[token.decode()] = future
+
+        # Publish the request
         await self.publish(
             subject, payload, reply=inbox.decode(), headers=headers
         )
 
         # Wait for the response or give up on timeout.
         try:
-            msg = await asyncio.wait_for(future, timeout)
-            return msg
+            return await asyncio.wait_for(future, timeout)
         except asyncio.TimeoutError:
-            try:
-                # Double check that the token is there already.
-                self._resp_map.pop(token.decode())
-            except KeyError:
-                await self._error_cb(
-                    errors.
-                    Error(f"nats: missing response token '{token.decode()}'")
-                )
-
-            future.cancel()
             raise errors.TimeoutError
 
     def new_inbox(self) -> str:
@@ -1051,7 +1077,7 @@ class Client:
            msg = sub.next_msg()
         """
         next_inbox = self._inbox_prefix[:]
-        next_inbox.extend(b'.')
+        next_inbox.extend(b".")
         next_inbox.extend(self._nuid.next())
         return next_inbox.decode()
 
@@ -1197,11 +1223,11 @@ class Client:
     def ssl_context(self) -> ssl.SSLContext:
         ssl_context: Optional[ssl.SSLContext] = None
         if "tls" in self.options:
-            ssl_context = self.options.get('tls')
+            ssl_context = self.options.get("tls")
         else:
             ssl_context = ssl.create_default_context()
         if ssl_context is None:
-            raise errors.Error('nats: no ssl context provided')
+            raise errors.Error("nats: no ssl context provided")
         return ssl_context
 
     async def _send_command(self, cmd: bytes, priority: bool = False) -> None:
@@ -1210,7 +1236,8 @@ class Client:
         else:
             self._pending.append(cmd)
         self._pending_data_size += len(cmd)
-        if self._max_pending_size > 0 and self._pending_data_size > self._max_pending_size:
+        if (self._max_pending_size > 0
+                and self._pending_data_size > self._max_pending_size):
             # Only flush force timeout on publish
             await self._flush_pending(force_flush=True)
 
@@ -1306,8 +1333,8 @@ class Client:
             # Not yet exceeded max_reconnect_attempts so can still use
             # this server in the future.
             self._server_pool.append(s)
-            if s.last_attempt is not None and now < s.last_attempt + self.options[
-                    "reconnect_time_wait"]:
+            if (s.last_attempt is not None and now
+                    < s.last_attempt + self.options["reconnect_time_wait"]):
                 # Backoff connecting to server if we attempted recently.
                 await asyncio.sleep(self.options["reconnect_time_wait"])
             try:
@@ -1324,13 +1351,13 @@ class Client:
                         s.uri,
                         ssl_context=self.ssl_context,
                         buffer_size=DEFAULT_BUFFER_SIZE,
-                        connect_timeout=self.options['connect_timeout']
+                        connect_timeout=self.options["connect_timeout"],
                     )
                 else:
                     await self._transport.connect(
                         s.uri,
                         buffer_size=DEFAULT_BUFFER_SIZE,
-                        connect_timeout=self.options['connect_timeout']
+                        connect_timeout=self.options["connect_timeout"],
                     )
                 self._current_server = s
                 break
@@ -1386,8 +1413,8 @@ class Client:
             self._status = Client.RECONNECTING
             self._ps.reset()
 
-            if self._reconnection_task is not None and not self._reconnection_task.cancelled(
-            ):
+            if (self._reconnection_task is not None
+                    and not self._reconnection_task.cancelled()):
                 # Cancel the previous task in case it may still be running.
                 self._reconnection_task.cancel()
 
@@ -1405,8 +1432,8 @@ class Client:
         ):
             self._reading_task.cancel()
 
-        if self._ping_interval_task is not None and not self._ping_interval_task.cancelled(
-        ):
+        if (self._ping_interval_task is not None
+                and not self._ping_interval_task.cancelled()):
             self._ping_interval_task.cancel()
 
         if self._flusher_task is not None and not self._flusher_task.cancelled(
@@ -1502,24 +1529,24 @@ class Client:
             except asyncio.CancelledError:
                 break
 
-        if self._reconnection_task_future is not None and not self._reconnection_task_future.cancelled(
-        ):
+        if (self._reconnection_task_future is not None
+                and not self._reconnection_task_future.cancelled()):
             self._reconnection_task_future.set_result(True)
 
     def _connect_command(self) -> bytes:
-        '''
+        """
         Generates a JSON string with the params to be used
         when sending CONNECT to the server.
 
           ->> CONNECT {"lang": "python3"}
 
-        '''
+        """
         options = {
             "verbose": self.options["verbose"],
             "pedantic": self.options["pedantic"],
             "lang": __lang__,
             "version": __version__,
-            "protocol": PROTOCOL
+            "protocol": PROTOCOL,
         }
         if "headers" in self._server_info:
             options["headers"] = self._server_info["headers"]
@@ -1537,8 +1564,8 @@ class Client:
                     options["nkey"] = self._public_nkey
             # In case there is no password, then consider handle
             # sending a token instead.
-            elif self.options["user"] is not None and self.options[
-                    "password"] is not None:
+            elif (self.options["user"] is not None
+                  and self.options["password"] is not None):
                 options["user"] = self.options["user"]
                 options["pass"] = self.options["password"]
             elif self.options["token"] is not None:
@@ -1556,7 +1583,7 @@ class Client:
             options["echo"] = not self.options["no_echo"]
 
         connect_opts = json.dumps(options, sort_keys=True)
-        return b''.join([CONNECT_OP + _SPC_ + connect_opts.encode() + _CRLF_])
+        return b"".join([CONNECT_OP + _SPC_ + connect_opts.encode() + _CRLF_])
 
     async def _process_ping(self) -> None:
         """
@@ -1683,8 +1710,8 @@ class Client:
         Process MSG sent by server.
         """
         payload_size = len(data)
-        self.stats['in_msgs'] += 1
-        self.stats['in_bytes'] += payload_size
+        self.stats["in_msgs"] += 1
+        self.stats["in_bytes"] += payload_size
 
         sub = self._subs.get(sid)
         if not sub:
@@ -1757,7 +1784,8 @@ class Client:
             try:
                 sub._pending_size += payload_size
                 # allow setting pending_bytes_limit to 0 to disable
-                if sub._pending_bytes_limit > 0 and sub._pending_size >= sub._pending_bytes_limit:
+                if (sub._pending_bytes_limit > 0
+                        and sub._pending_size >= sub._pending_bytes_limit):
                     # Subtract the bytes since the message will be thrown away
                     # so it would not be pending data.
                     sub._pending_size -= payload_size
@@ -1836,23 +1864,24 @@ class Client:
         with latest updates from cluster to enable server discovery.
         """
         assert self._current_server, "Client.connect must be called first"
-        if 'connect_urls' in info:
-            if info['connect_urls']:
+        if "connect_urls" in info:
+            if info["connect_urls"]:
                 connect_urls = []
-                for connect_url in info['connect_urls']:
-                    scheme = ''
-                    if self._current_server.uri.scheme == 'tls':
-                        scheme = 'tls'
+                for connect_url in info["connect_urls"]:
+                    scheme = ""
+                    if self._current_server.uri.scheme == "tls":
+                        scheme = "tls"
                     else:
-                        scheme = 'nats'
+                        scheme = "nats"
 
                     uri = urlparse(f"{scheme}://{connect_url}")
                     srv = Srv(uri)
                     srv.discovered = True
 
                     # Check whether we should reuse the original hostname.
-                    if 'tls_required' in self._server_info and self._server_info['tls_required'] \
-                            and self._host_is_ip(uri.hostname):
+                    if ("tls_required" in self._server_info
+                            and self._server_info["tls_required"]
+                            and self._host_is_ip(uri.hostname)):
                         srv.tls_name = self._current_server.uri.hostname
 
                     # Filter for any similar server in the server pool already.
@@ -1868,7 +1897,8 @@ class Client:
                 for srv in connect_urls:
                     self._server_pool.append(srv)
 
-                if not initial_connection and connect_urls and self._discovered_server_cb:
+                if (not initial_connection and connect_urls
+                        and self._discovered_server_cb):
                     self._discovered_server_cb()
 
     def _host_is_ip(self, connect_url: Optional[str]) -> bool:
@@ -1899,13 +1929,13 @@ class Client:
         else:
             hostname = self._current_server.uri.hostname
 
-        handshake_first = self.options['tls_handshake_first']
+        handshake_first = self.options["tls_handshake_first"]
         if handshake_first:
             await self._transport.connect_tls(
                 hostname,
                 self.ssl_context,
                 DEFAULT_BUFFER_SIZE,
-                self.options['connect_timeout'],
+                self.options["connect_timeout"],
             )
 
         connection_completed = self._transport.readline()
@@ -1932,17 +1962,18 @@ class Client:
 
         self._process_info(srv_info, initial_connection=True)
 
-        if 'version' in self._server_info:
-            self._current_server.server_version = self._server_info['version']
+        if "version" in self._server_info:
+            self._current_server.server_version = self._server_info["version"]
 
-        if 'max_payload' in self._server_info:
+        if "max_payload" in self._server_info:
             self._max_payload = self._server_info["max_payload"]
 
-        if 'client_id' in self._server_info:
+        if "client_id" in self._server_info:
             self._client_id = self._server_info["client_id"]
 
-        if 'tls_required' in self._server_info and self._server_info[
-                'tls_required'] and self._current_server.uri.scheme != "ws":
+        if ("tls_required" in self._server_info
+                and self._server_info["tls_required"]
+                and self._current_server.uri.scheme != "ws"):
             if not handshake_first:
                 await self._transport.drain()  # just in case something is left
 
@@ -1951,7 +1982,7 @@ class Client:
                     hostname,
                     self.ssl_context,
                     DEFAULT_BUFFER_SIZE,
-                    self.options['connect_timeout'],
+                    self.options["connect_timeout"],
                 )
 
         # Refresh state of parser upon reconnect.
@@ -1977,7 +2008,7 @@ class Client:
                 # FIXME: Maybe handling could be more special here,
                 # checking for errors.AuthorizationError for example.
                 # await self._process_err(err_msg)
-                raise errors.Error("nats: " + err_msg.rstrip('\r\n'))
+                raise errors.Error("nats: " + err_msg.rstrip("\r\n"))
 
         self._transport.write(PING_PROTO)
         await self._transport.drain()
@@ -1996,7 +2027,7 @@ class Client:
             # FIXME: Maybe handling could be more special here,
             # checking for ErrAuthorization for example.
             # await self._process_err(err_msg)
-            raise errors.Error("nats: " + err_msg.rstrip('\r\n'))
+            raise errors.Error("nats: " + err_msg.rstrip("\r\n"))
 
         if PONG_PROTO in next_op:
             self._status = Client.CONNECTED
@@ -2101,7 +2132,7 @@ class Client:
             except asyncio.CancelledError:
                 break
             except Exception as ex:
-                _logger.error('nats: encountered error', exc_info=ex)
+                _logger.error("nats: encountered error", exc_info=ex)
                 break
             # except asyncio.InvalidStateError:
             #     pass

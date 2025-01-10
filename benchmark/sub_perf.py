@@ -2,7 +2,6 @@ import argparse
 import asyncio
 import sys
 import time
-from random import randint
 
 import nats
 
@@ -11,6 +10,7 @@ DEFAULT_NUM_MSGS = 100000
 DEFAULT_MSG_SIZE = 16
 DEFAULT_BATCH_SIZE = 100
 HASH_MODULO = 1000
+
 
 def show_usage():
     message = """
@@ -22,15 +22,17 @@ options:
     """
     print(message)
 
+
 def show_usage_and_die():
     show_usage()
     sys.exit(1)
 
+
 async def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--count', default=DEFAULT_NUM_MSGS, type=int)
-    parser.add_argument('-S', '--subject', default='test')
-    parser.add_argument('--servers', default=[], action='append')
+    parser.add_argument("-n", "--count", default=DEFAULT_NUM_MSGS, type=int)
+    parser.add_argument("-S", "--subject", default="test")
+    parser.add_argument("--servers", default=[], action="append")
     args = parser.parse_args()
 
     servers = args.servers
@@ -73,10 +75,15 @@ async def main():
         await asyncio.sleep(0.1)
 
     elapsed = time.monotonic() - start
-    print("\nTest completed : {} msgs/sec sent".format(args.count/elapsed))
+    print("\nTest completed : {} msgs/sec sent".format(args.count / elapsed))
 
-    print("Received {} messages ({} msgs/sec)".format(received, received/elapsed))
+    print(
+        "Received {} messages ({} msgs/sec)".format(
+            received, received / elapsed
+        )
+    )
     await nc.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     asyncio.run(main())

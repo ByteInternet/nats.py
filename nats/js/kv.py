@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional
 
@@ -30,6 +31,8 @@ KV_OP = "KV-Operation"
 KV_DEL = "DEL"
 KV_PURGE = "PURGE"
 MSG_ROLLUP_SUBJECT = "sub"
+
+logger = logging.getLogger(__name__)
 
 
 class KeyValue:
@@ -69,6 +72,7 @@ class KeyValue:
         """
         An entry from a KeyValue store in JetStream.
         """
+
         bucket: str
         key: str
         value: Optional[bytes]
@@ -82,6 +86,7 @@ class KeyValue:
         """
         BucketStatus is the status of a KeyValue bucket.
         """
+
         stream_info: api.StreamInfo
         bucket: str
 
@@ -298,7 +303,8 @@ class KeyValue:
 
         def __init__(self, js):
             self._js = js
-            self._updates: asyncio.Queue[KeyValue.Entry | None] = asyncio.Queue(maxsize=256)
+            self._updates: asyncio.Queue[KeyValue.Entry
+                                         | None] = asyncio.Queue(maxsize=256)
             self._sub = None
             self._pending: Optional[int] = None
 
@@ -337,9 +343,10 @@ class KeyValue:
         """
         return await self.watch(">", **kwargs)
 
-    async def keys(self, **kwargs) -> List[str]:
+    async def keys(self, filters: List[str] = None, **kwargs) -> List[str]:
         """
-        keys will return a list of the keys from a KeyValue store.
+        Returns a list of the keys from a KeyValue store.
+        Optionally filters the keys based on the provided filter list.
         """
         watcher = await self.watchall(
             ignore_deletes=True,
@@ -347,11 +354,31 @@ class KeyValue:
         )
         keys = []
 
+        # Check consumer info and make sure filters are applied correctly
+        try:
+            consumer_info = await watcher._sub.consumer_info()
+            if consumer_info and filters:
+                # If NATS server < 2.10, filters might be ignored.
+                if consumer_info.config.filter_subject != ">":
+                    logger.warning(
+                        "Server may ignore filters if version is < 2.10."
+                    )
+        except Exception as e:
+            raise e
+
         async for key in watcher:
             # None entry is used to signal that there is no more info.
             if not key:
                 break
-            keys.append(key.key)
+
+            # Apply filters if any were provided
+            if filters:
+                if any(f in key.key for f in filters):
+                    keys.append(key.key)
+            else:
+                # No filters provided, append all keys
+                keys.append(key.key)
+
         await watcher.stop()
 
         if not keys:
@@ -387,6 +414,7 @@ class KeyValue:
         include_history=False,
         ignore_deletes=False,
         meta_only=False,
+        inactive_threshold=None,
     ) -> KeyWatcher:
         """
         watch will fire a callback when a key that matches the keys
@@ -409,7 +437,7 @@ class KeyValue:
 
                 # keys() uses this
                 if ignore_deletes:
-                    if (op == KV_PURGE or op == KV_DEL):
+                    if op == KV_PURGE or op == KV_DEL:
                         if meta.num_pending == 0 and not watcher._init_done:
                             await watcher._updates.put(None)
                             watcher._init_done = True
@@ -436,12 +464,17 @@ class KeyValue:
         if not include_history:
             deliver_policy = api.DeliverPolicy.LAST_PER_SUBJECT
 
+        # Cleanup watchers after 5 minutes of inactivity by default.
+        if not inactive_threshold:
+            inactive_threshold = 5 * 60
+
         watcher._sub = await self._js.subscribe(
             subject,
             cb=watch_updates,
             ordered_consumer=True,
             deliver_policy=deliver_policy,
             headers_only=meta_only,
+            inactive_threshold=inactive_threshold,
         )
         await asyncio.sleep(0)
 

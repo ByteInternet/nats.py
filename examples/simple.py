@@ -1,4 +1,5 @@
 import asyncio
+
 import nats
 
 
@@ -10,7 +11,7 @@ async def main():
     sub = await nc.subscribe("foo")
 
     # Publish a message to 'foo'
-    await nc.publish("foo", b'Hello from Python!')
+    await nc.publish("foo", b"Hello from Python!")
 
     # Process a message
     msg = await sub.next_msg()
@@ -19,5 +20,6 @@ async def main():
     # Close NATS connection
     await nc.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     asyncio.run(main())
